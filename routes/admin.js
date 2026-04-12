@@ -91,6 +91,10 @@ router.delete('/delete-student/:roll_no',async (req,res)=>{
     }
 });
 
+
+
+//get academic complaints
+
 router.get('/academic-complaints',async (req,res)=>{
     try{
         const response=await AcademicComplaint.find();
@@ -105,10 +109,12 @@ router.get('/academic-complaints',async (req,res)=>{
     }
 });
 
+
+//get mess complaints
 router.get('/mess-complaints',async (req,res)=>{
     try{
         const response=await messComplaint.find();
-        if(!response){
+        if(response.length===0){                                            //find() returns [] (empty array), NOT null
             return res.send("No data in database to show.");
         }
         res.status(200).json(response);
@@ -118,6 +124,9 @@ router.get('/mess-complaints',async (req,res)=>{
         res.status(500).json('Internal server error.');
     }
 });
+
+
+//get mess complaints by status
 
 router.get('/mess-complaints/:statusOfIssue',async (req,res)=>{
     try{
@@ -133,6 +142,10 @@ router.get('/mess-complaints/:statusOfIssue',async (req,res)=>{
     }
 })
 
+
+
+//get academic-complaints by status 
+
 router.get('/academic-complaints/:statusOfIssue',async (req,res)=>{
     try{
         const statusOfIssue=req.params.statusOfIssue;
@@ -141,6 +154,66 @@ router.get('/academic-complaints/:statusOfIssue',async (req,res)=>{
             return res.status(404).json({message:"Information missing in database for that status."});
         }
         res.status(200).json(response);
+    }catch(err){
+        console.log(err);
+        res.status(500).json('Internal server error.');
+    }
+});
+
+
+
+//change status of academic complaint
+router.put('/academic-complaints/change-status/:id', async(req,res)=>{
+    try{
+
+        const complaintId = req.params.id;
+        const { status } = req.body;
+
+        const updatedComplaint = await AcademicComplaint.findByIdAndUpdate(
+            complaintId,
+            { status },
+            {
+                new: true,          // return updated document
+                runValidators: true // enforce enum
+            }
+        );
+        if (!updatedComplaint) {
+            return res.status(404).json({
+            error: "Complaint not found"
+            });
+        }
+        res.status(200).json({"message":"Statys changed successfully",updatedComplaint});
+
+    }catch(err){
+        console.log(err);
+        res.status(500).json('Internal server error.');
+    }
+});
+
+
+
+//change status of mess complaint
+router.put('/mess-complaints/change-status/:id', async(req,res)=>{
+    try{
+
+        const complaintId = req.params.id;
+        const { status } = req.body;
+
+        const updatedComplaint = await messComplaint.findByIdAndUpdate(
+            complaintId,
+            { status },
+            {
+                new: true,          // return updated document
+                runValidators: true // enforce enum
+            }
+        );
+        if (!updatedComplaint) {
+            return res.status(404).json({
+            error: "Complaint not found"
+            });
+        }
+        res.status(200).json({"message":"Statys changed successfully",updatedComplaint});
+
     }catch(err){
         console.log(err);
         res.status(500).json('Internal server error.');
